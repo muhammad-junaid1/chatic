@@ -2,10 +2,20 @@
   "name": "chatic",
   "version": "1.0.0",
   "description": "A simple chat interface for terminals",
-  "main": "cli.js",
+  "main": "./cli.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/muhammad-junaid1/chatic"
+  },
+  "bin": {
+    "chatic": "./cli.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "chat", "texting", "terminal", "sockets", "chatroom"
+  ],
   "author": "muhammad-junaid1",
   "license": "MIT",
   "dependencies": {
