@@ -16,14 +16,16 @@ const backendURL = "http://localhost:5000";
         message: "Enter your username: "
     }
  ]).then((result) => {
-    const spinner = ora(`Hold on! Connecting you to the world`).start();
-    const username = result?.username;
-
-    socket.emit("chatic_add-user", username);
-    socket.on("chatic_user-added", (data) => {
-        if(data?.status) {
+     const username = result?.username;
+     
+     socket.emit("chatic_add-user", username);
+     socket.on("chatic_user-added", (data) => {
+         if(data?.status) {
+            const spinner = ora("Connecting you to our servers!").start();
             setTimeout(() =>{
                 spinner.stop();
+                
+                console.log(`Boom! You're connected as ${chalk.greenBright(username)}`);
 
                 inquirer.prompt([
                     {
@@ -35,7 +37,7 @@ const backendURL = "http://localhost:5000";
                     }
                 ]).then((result) => {
                     const choice = result?.Options;
-                    console.log(choice);
+                    console.log(data?.users);
                 })
             }, 2000);
         } else {
