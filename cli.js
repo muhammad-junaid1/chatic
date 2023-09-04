@@ -31,9 +31,9 @@ const backendURL = "http://localhost:5000";
         .then((result) => {
           const choice = result?.Options;
           socket.emit("chatic_add-user", username);
+          const spinner = ora("Connecting you to our servers!").start();
           socket.on("chatic_user-added", (data) => {
             if (data?.status) {
-              const spinner = ora("Connecting you to our servers!").start();
               setTimeout(() => {
                 spinner.stop();
                 const { user1, user2 } = data?.room;
