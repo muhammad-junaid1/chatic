@@ -4,6 +4,10 @@ import inquirer from "inquirer";
 import io from "socket.io-client";
 import ora from "ora";
 import chalk from "chalk";
+import prompt from "prompt";
+
+prompt.message = "";
+prompt.delimiter = "";
 
 const backendURL = "http://localhost:5000";
 
@@ -44,9 +48,29 @@ const backendURL = "http://localhost:5000";
                     : user1?.username;
                 console.log("\n");
                 console.log(`Connected to: ${chalk.blueBright(connectedTo)}`);
+                console.log("\n");
+
+                socket.on("chatic_message-received", data => {
+                  const {message, sender} = data;
+
+                  if(sender !== username) {
+                    console.log(message);
+                  }
+                })
+
+                prompt.get(["You:"], function (err, result) {
+                  const messageText = result["You:"];
+
+                  socket.emit("chatic_send-message", {
+                    user1: username, 
+                    user2: connectedTo, 
+                    sender: username, 
+                    message: messageText
+                  });
+                });
               }, 2000);
             } else {
-              console.log(chalk.redBright(data?.message));
+              console.log("\n", chalk.redBright(data?.message));
             }
           });
         });
