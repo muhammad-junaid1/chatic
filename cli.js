@@ -11,6 +11,19 @@ prompt.delimiter = "";
 
 const backendURL = "http://localhost:5000";
 
+const getMessageInput = ({socket, username, connectedTo}) => {
+  prompt.get(["You:"], function (err, result) {
+    const messageText = result["You:"];
+
+    socket.emit("chatic_send-message", {
+      user1: username,
+      user2: connectedTo,
+      sender: username,
+      message: messageText,
+    });
+  });
+}
+
 (() => {
   const socket = io(backendURL);
   inquirer
@@ -23,56 +36,37 @@ const backendURL = "http://localhost:5000";
     ])
     .then((result) => {
       const username = result?.username;
+      socket.emit("chatic_add-user", username);
+      const spinner = ora("Connecting you to our servers!").start();
+      socket.on("chatic_user-added", (data) => {
+        if (data?.status) {
+          setTimeout(() => {
+            spinner.stop();
+            const { user1, user2 } = data?.room;
 
-      inquirer
-        .prompt([
-          {
-            type: "list",
-            name: "Options",
-            choices: ["1. One-to-One Random Chat"],
-          },
-        ])
-        .then((result) => {
-          const choice = result?.Options;
-          socket.emit("chatic_add-user", username);
-          const spinner = ora("Connecting you to our servers!").start();
-          socket.on("chatic_user-added", (data) => {
-            if (data?.status) {
-              setTimeout(() => {
-                spinner.stop();
-                const { user1, user2 } = data?.room;
+            const connectedTo =
+              user1?.username === username ? user2?.username : user1?.username;
+            console.log("\n");
+            console.log(`Connected to: ${chalk.blueBright(connectedTo)}`);
+            console.log("\n");
 
-                const connectedTo =
-                  user1?.username === username
-                    ? user2?.username
-                    : user1?.username;
-                console.log("\n");
-                console.log(`Connected to: ${chalk.blueBright(connectedTo)}`);
-                console.log("\n");
+            socket.on("chatic_message-received", (data) => {
+              const { message, sender } = data;
 
-                socket.on("chatic_message-received", data => {
-                  const {message, sender} = data;
+              if (sender !== username) {
+                console.log("\n", message);
+              }
+            });
 
-                  if(sender !== username) {
-                    console.log(message);
-                  }
-                })
-
-                prompt.get(["You:"], function (err, result) {
-                  const messageText = result["You:"];
-
-                  socket.emit("chatic_send-message", {
-                    user1: username, 
-                    user2: connectedTo, 
-                    sender: username, 
-                    message: messageText
-                  });
-                });
-              }, 2000);
-            } else {
-              console.log("\n", chalk.redBright(data?.message));
-            }
-          });
-        });
+             getMessageInput({
+              socket, 
+              connectedTo,
+              username, 
+             });
+          }, 2000);
+        } else {
+          console.log("\n", chalk.redBright(data?.message));
+        }
+      });
     });
 })();
