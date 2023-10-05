@@ -4,16 +4,29 @@ import inquirer from "inquirer";
 import io from "socket.io-client";
 import ora from "ora";
 import chalk from "chalk";
-import prompt from "prompt";
-
-prompt.message = "";
-prompt.delimiter = "";
 
 const backendURL = "http://localhost:5000";
 
-const getMessageInput = ({socket, username, connectedTo}) => {
-  prompt.get(["You:"], function (err, result) {
-    const messageText = result["You:"];
+(() => {
+  const socket = io(backendURL);
+
+  const messages = [];
+
+  async function startChat(username, connectedTo) {
+    while (true) {
+
+    // Ask the user for their input
+    const result = await inquirer.prompt({
+      type: "input",
+      name: "message",
+      message: "You:",
+    });
+    const messageText = result["message"];
+
+    messages.push(`You: ${messageText}`);
+
+    console.clear();
+    console.log(messages.join("\n"));
 
     socket.emit("chatic_send-message", {
       user1: username,
@@ -21,11 +34,9 @@ const getMessageInput = ({socket, username, connectedTo}) => {
       sender: username,
       message: messageText,
     });
-  });
-}
+    }
+  }
 
-(() => {
-  const socket = io(backendURL);
   inquirer
     .prompt([
       {
@@ -54,15 +65,16 @@ const getMessageInput = ({socket, username, connectedTo}) => {
               const { message, sender } = data;
 
               if (sender !== username) {
-                console.log("\n", message);
+                messages.push(message);
+                console.clear();
+                console.log(messages.join("\n"));
               }
             });
 
-             getMessageInput({
-              socket, 
+            startChat({
+              username,
               connectedTo,
-              username, 
-             });
+            });
           }, 2000);
         } else {
           console.log("\n", chalk.redBright(data?.message));
