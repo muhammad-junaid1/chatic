@@ -14,26 +14,25 @@ const backendURL = "http://localhost:5000";
 
   async function startChat(username, connectedTo) {
     while (true) {
+      // Ask the user for their input
+      const result = await inquirer.prompt({
+        type: "input",
+        name: "message",
+        message: "You:",
+      });
+      const messageText = result["message"];
 
-    // Ask the user for their input
-    const result = await inquirer.prompt({
-      type: "input",
-      name: "message",
-      message: "You:",
-    });
-    const messageText = result["message"];
+      messages.push(`You: ${messageText}`);
 
-    messages.push(`You: ${messageText}`);
+      console.clear();
+      console.log(messages.join("\n"));
 
-    console.clear();
-    console.log(messages.join("\n"));
-
-    socket.emit("chatic_send-message", {
-      user1: username,
-      user2: connectedTo,
-      sender: username,
-      message: messageText,
-    });
+      socket.emit("chatic_send-message", {
+        user1: username,
+        user2: connectedTo,
+        sender: username,
+        message: messageText,
+      });
     }
   }
 
